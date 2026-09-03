@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تخته پروژه — استودیوی محتوا</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#141310;
+    --board:#211f19;
+    --paper:#f6f1e6;
+    --ink:#221f19;
+    --ink-soft:#5b564a;
+    --brass:#c7a15a;
+    --brass-bright:#e3c07f;
+    --line:rgba(199,161,90,.22);
+    --shadow:0 18px 40px -12px rgba(0,0,0,.55);
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, #262319 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 10%, #201d17 0%, transparent 50%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0 2px, transparent 2px 6px),
+      var(--bg-0);
+    color:var(--paper);
+    font-family:'Vazirmatn',sans-serif;
+    min-height:100vh;
+  }
+  ::selection{background:var(--brass);color:#1a1811;}
+  button{font-family:inherit;}
+  *:focus-visible{outline:2px solid var(--brass-bright);outline-offset:2px;}
+
+  /* ---------- top clip bar ---------- */
+  .clipbar{
+    position:sticky; top:0; z-index:40;
+    background:linear-gradient(180deg,#2a2820,#1c1a15 90%);
+    border-bottom:1px solid var(--line);
+    padding:14px 22px;
+    display:flex; align-items:center; gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand .clip{
+    width:34px;height:34px;border-radius:50%;flex:none;
+    background:conic-gradient(from 220deg,#9c8149,#e3c07f,#8a7040,#e3c07f,#9c8149);
+    box-shadow:inset 0 0 0 3px #1c1a15, 0 2px 6px rgba(0,0,0,.5);
+  }
+  .brand h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.2px;}
+  .brand span{display:block;font-size:11.5px;color:#9a9282;font-family:'Space Mono',monospace;letter-spacing:.5px;margin-top:2px;}
+
+  .search-box{flex:1;min-width:160px;max-width:280px;position:relative;}
+  .search-box input{
+    width:100%; background:#26241d; border:1px solid var(--line);
+    color:var(--paper); padding:9px 12px 9px 32px; border-radius:var(--radius);
+    font-size:13px; font-family:'Vazirmatn',sans-serif; transition:border-color .2s;
+  }
+  .search-box input:focus{outline:none; border-color:var(--brass);}
+  .search-box::before{
+    content:'⌕'; position:absolute; left:11px; top:50%; transform:translateY(-50%);
+    color:#8f8873; font-size:14px; pointer-events:none;
+  }
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-right:auto;}
+  .btn{
+    background:transparent;border:1px solid var(--line);color:var(--paper);
+    padding:9px 15px;border-radius:var(--radius);font-size:13.5px;cursor:pointer;
+    transition:background .15s,border-color .15s,transform .1s;
+    display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  }
+  .btn:hover{border-color:var(--brass);background:rgba(199,161,90,.08);}
+  .btn:active{transform:translateY(1px);}
+  .btn.primary{background:var(--brass);color:#1c1a12;border-color:var(--brass);font-weight:600;}
+  .btn.primary:hover{background:var(--brass-bright);}
+  .btn.danger{border-color:#7a3b34;color:#e8a89f;}
+  .btn.danger:hover{background:rgba(122,59,52,.18);}
+  .btn.ghost{border-color:transparent;color:#8f8873;padding:9px 10px;}
+  .btn.ghost:hover{color:var(--brass-bright);background:rgba(199,161,90,.06);border-color:var(--line);}
+  input[type=file]{display:none;}
+
+  /* ---------- board ---------- */
+  .board-wrap{max-width:1280px;margin:0 auto;padding:38px 24px 90px;}
+  .board-head{margin-bottom:28px; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;}
+  .board-head .eyebrow-free{color:var(--brass);font-size:13px;margin:0 0 6px;font-family:'Space Mono',monospace;}
+  .board-head h2{font-size:26px;margin:0 0 8px;font-weight:800;}
+  .board-head p{color:#a79f8c;font-size:14px;margin:0;max-width:420px;line-height:1.9;text-align:left;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:20px;
+    align-items:start;
+  }
+  .card{
+    position:relative;
+    display:flex;flex-direction:column;
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:2px;
+    padding:20px 18px 14px;
+    min-height:172px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transform:rotate(var(--rot,0deg));
+    transition:transform .18s ease, box-shadow .18s ease;
+    border-top:6px solid var(--accent,#999);
+    background-image:
+      linear-gradient(var(--paper),var(--paper)),
+      repeating-linear-gradient(#0000 0 27px, rgba(34,31,25,.05) 27px 28px);
+  }
+  .card:hover{transform:rotate(0deg) translateY(-4px);box-shadow:0 24px 46px -10px rgba(0,0,0,.6);}
+  .card .pin{
+    position:absolute;top:-9px;right:22px;width:16px;height:16px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ffe6a8, var(--accent,#999) 65%);
+    box-shadow:0 3px 5px rgba(0,0,0,.45);
+  }
+  .card .icon{font-size:20px;line-height:1;margin-bottom:2px;}
+  .card h3{margin:2px 0 3px;font-size:19px;font-weight:800;}
+  .card .sub{font-size:12px;color:var(--ink-soft);font-family:'Space Mono',monospace;margin:0 0 12px;}
+  .card ul{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:5px;flex:1;}
+  .card ul li{font-size:13px;color:#3a3628;display:flex;align-items:baseline;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card ul li b{font-weight:600;flex:none;}
+  .card ul li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent,#999);flex:none;}
+  .card .more{font-size:12px;color:var(--ink-soft);}
+  .card .footer{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-soft);
+    border-top:1px dashed rgba(34,31,25,.15);padding-top:9px;margin-top:auto;
+  }
+
+  .add-card{
+    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+    border:1.5px dashed var(--line);border-radius:2px;min-height:172px;cursor:pointer;
+    color:#a79f8c;background:rgba(255,255,255,.02);transition:border-color .15s,color .15s;
+  }
+  .add-card:hover{border-color:var(--brass);color:var(--brass-bright);}
+  .add-card .plus{font-size:26px;line-height:1;}
+
+  .empty-state{
+    grid-column:1/-1;text-align:center;padding:50px 20px;color:#8f8873;
+    border:1px dashed var(--line);border-radius:4px;
+  }
+
+  /* ---------- detail view ---------- */
+  .detail{
+    position:fixed;inset:0;background:rgba(10,9,7,.72);backdrop-filter:blur(3px);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:40px 20px;overflow-y:auto;z-index:60;
+  }
+  .detail.open{display:flex;}
+  .detail-sheet{
+    background:var(--board);border:1px solid var(--line);border-radius:6px;
+    width:100%;max-width:760px;box-shadow:var(--shadow);
+    animation:rise .22s ease;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .detail-top{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:20px 24px;border-bottom:1px solid var(--line);
+    border-top:5px solid var(--accent,#999);border-radius:6px 6px 0 0;
+  }
+  .detail-top .title-wrap{display:flex;align-items:center;gap:10px;min-width:0;}
+  .detail-top .icon-big{font-size:22px;flex:none;}
+  .detail-top h2{margin:0;font-size:21px;font-weight:800;outline:none;min-width:40px;}
+  .detail-top h2:focus{border-bottom:1px dashed var(--brass);}
+  .detail-top .close{background:none;border:none;color:#a79f8c;font-size:22px;cursor:pointer;line-height:1;flex:none;}
+  .detail-top .close:hover{color:var(--paper);}
+  .detail-body{padding:22px 24px 26px;display:flex;flex-direction:column;gap:22px;}
+
+  .field-block label{display:block;font-size:12px;color:#a79f8c;margin-bottom:6px;font-family:'Space Mono',monospace;}
+  .field-row{display:flex;gap:8px;margin-bottom:8px;}
+  .field-row input[type=text]{
+    flex:1;min-width:0;background:#26241d;border:1px solid var(--line);color:var(--paper);
+    border-radius:3px;padding:9px 11px;font-size:13.5px;font-family:'Vazirmatn',sans-serif;
+  }
+  .field-row input[type=text]:focus{outline:none;border-color:var(--brass);}
+  .field-row .fname{flex:0 0 34%;}
+  .field-row button{background:none;border:1px solid var(--line);border-radius:3px;width:34px;flex:none;cursor:pointer;font-size:13px;transition:all .15s;color:#a79f8c;}
+  .field-row .copy-btn:hover{border-color:var(--brass);color:var(--brass-bright);background:rgba(199,161,90,.08);}
+  .field-row .rm{color:#c98b83;}
+  .field-row .rm:hover{border-color:#c98b83;background:rgba(201,139,131,.1);}
+
+  textarea{
+    width:100%;min-height:90px;background:#26241d;border:1px solid var(--line);color:var(--paper);
+    border-radius:3px;padding:11px;font-size:13.5px;font-family:'Vazirmatn',sans-serif;resize:vertical;
+  }
+  textarea:focus{outline:none;border-color:var(--brass);}
+
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-bottom:10px;}
+  .gallery .thumb{
+    position:relative;border-radius:4px;overflow:hidden;aspect-ratio:1/1;border:1px solid var(--line);background:#26241d;
+  }
+  .gallery .thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;}
+  .gallery .thumb.file{display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:10px;color:#a79f8c;padding:6px;text-align:center;gap:4px;cursor:default;}
+  .gallery .thumb .del{
+    position:absolute;top:3px;left:3px;background:rgba(15,13,10,.75);color:#eee;border:none;
+    width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;z-index:2;
+  }
+  .gallery .thumb .del:hover{background:#7a3b34;}
+
+  .upload-zone{
+    border:1.5px dashed var(--line);border-radius:4px;padding:18px;text-align:center;
+    font-size:13px;color:#a79f8c;cursor:pointer;transition:border-color .15s,color .15s;
+  }
+  .upload-zone:hover, .upload-zone.drag{border-color:var(--brass);color:var(--brass-bright);}
+
+  .detail-actions{display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid var(--line);gap:10px;flex-wrap:wrap;}
+  .save-hint{font-size:11.5px;color:#8f8873;font-family:'Space Mono',monospace;}
+
+  /* lightbox */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(8,7,5,.9);display:none;align-items:center;justify-content:center;
+    z-index:90;padding:30px;cursor:zoom-out;
+  }
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:4px;box-shadow:var(--shadow);}
+
+  /* toast */
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#26241d;border:1px solid var(--brass);color:var(--paper);
+    padding:11px 20px;border-radius:5px;font-size:13.5px;opacity:0;pointer-events:none;
+    transition:opacity .2s,transform .2s;z-index:80;box-shadow:var(--shadow);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:640px){
+    .board-head{flex-direction:column;align-items:flex-start;}
+    .board-head p{text-align:right;max-width:none;}
+  }
+  @media (max-width:520px){
+    .clipbar{padding:12px 14px;}
+    .search-box{order:3;max-width:none;flex:1 1 100%;}
+    .toolbar{margin-right:0;}
+    .board-wrap{padding:26px 14px 70px;}
+    .btn{padding:8px 12px;font-size:13px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="clipbar">
+  <div class="brand">
+    <div class="clip"></div>
+    <div>
+      <h1>تخته پروژه هوشمند</h1>
+      <span>ابزارها و پروژه‌های تولید محتوا</span>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="جستجو در پروژه‌ها...">
+  </div>
+
+  <div class="toolbar">
+    <button class="btn ghost" id="btnReset" title="بازگشت به حالت اولیه">↺ ریست</button>
+    <button class="btn" id="btnImport">⭱ بازیابی</button>
+    <input type="file" id="fileImport" accept="application/json">
+    <button class="btn primary" id="btnExport">⭳ پشتیبان JSON</button>
+  </div>
+</div>
+
+<div class="board-wrap">
+  <div class="board-head">
+    <div>
+      <p class="eyebrow-free">استودیو / نقشهٔ راه</p>
+      <h2>همهٔ ابزارها، یک تخته</h2>
+    </div>
+    <p>تغییرات به‌طور خودکار در همین مرورگر ذخیره می‌شوند. برای نگه‌داری همیشگی یا انتقال به دستگاه دیگر، از «پشتیبان JSON» خروجی بگیر و با «بازیابی» برش‌گردون.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="detail" id="detail">
+  <div class="detail-sheet" id="detailSheet"></div>
+</div>
+
+<div class="lightbox" id="lightbox"><img id="lightboxImg" src="" alt=""></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = "classic_content_board_v3";
+
+const ICONS = {
+  github:"🐙", doc:"📄", flow:"🌊", elevenlabs:"🎙️", infinityfree:"🌐",
+  gemini:"✨", grok:"🤖", capcut:"✂️", sono:"🎵", storyboard:"🎬"
+};
+function iconFor(p){ return ICONS[p.id] || "📌"; }
+
+let defaultState = {
+  projects: [
+    { id:"github", title:"GitHub", sub:"مخازن و دسترسی‌ها", accent:"#6e7681", rot:-1.4,
+      fields:[["یوزرنیم",""],["Repo",""],["رمز عبور",""]], notes:"", images:[], updatedAt:null },
+    { id:"doc", title:"DOC", sub:"سند اصلی پروژه", accent:"#4f7cff", rot:1.1,
+      fields:[["استوری",""],["لینک",""],["پرامپت تصویر",""],["ویس",""],["موزیک",""],["اسکریپت",""],["ویدیو",""]], notes:"", images:[], updatedAt:null },
+    { id:"flow", title:"Flow", sub:"چیدمان و برنامه‌ریزی صحنه‌ها", accent:"#2fb59a", rot:-0.8,
+      fields:[["نام سناریو",""]], notes:"", images:[], updatedAt:null },
+    { id:"elevenlabs", title:"ElevenLabs", sub:"صداگذاری هوش مصنوعی", accent:"#8b5cf6", rot:1.6,
+      fields:[["صدا (Voice)",""]], notes:"", images:[], updatedAt:null },
+    { id:"infinityfree", title:"Infinity Free", sub:"هاست و دامنهٔ رایگان", accent:"#4caf72", rot:-1.2,
+      fields:[["دامنه",""],["اطلاعات هاست",""]], notes:"", images:[], updatedAt:null },
+    { id:"gemini", title:"Gemini", sub:"سناریونویسی و تصویر", accent:"#3b82f6", rot:1.0,
+      fields:[["سناریو",""],["توضیحات پرامپت",""]], notes:"", images:[], updatedAt:null },
+    { id:"grok", title:"Grok", sub:"تولید محتوا با xAI", accent:"#555555", rot:-1.6,
+      fields:[["پرامپت",""]], notes:"", images:[], updatedAt:null },
+    { id:"capcut", title:"CapCut", sub:"تدوین نهایی", accent:"#ff3d63", rot:1.3,
+      fields:[["ویدیو",""],["صدا",""],["موزیک",""]], notes:"", images:[], updatedAt:null },
+    { id:"sono", title:"SONO", sub:"Minimax — موزیک هوش مصنوعی", accent:"#ff9740", rot:-1.0,
+      fields:[["مینی‌مکس",""],["موزیک",""]], notes:"", images:[], updatedAt:null },
+    { id:"storyboard", title:"StoryBoard", sub:"برای مارک‌بندی و روند کار", accent:"#c7a15a", rot:1.4,
+      fields:[["نشانه‌گذاری (Mark)",""],["روند کار (Workflow)",""]], notes:"", images:[], updatedAt:null }
+  ]
+};
+
+let state = loadState();
+function loadState(){
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if(saved){
+    try {
+      const parsed = JSON.parse(saved);
+      if(parsed && Array.isArray(parsed.projects)) return parsed;
+    } catch(e){ console.error(e); }
+  }
+  return JSON.parse(JSON.stringify(defaultState));
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function touch(p){ p.updatedAt = Date.now(); saveState(); }
+
+function fmtDate(ts){
+  if(!ts) return "بدون ویرایش";
+  const d = new Date(ts), now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const yest = new Date(now); yest.setDate(now.getDate()-1);
+  if(sameDay) return "امروز · " + d.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+  if(d.toDateString() === yest.toDateString()) return "دیروز";
+  return d.toLocaleDateString('fa-IR',{month:'short',day:'numeric'});
+}
+
+let activeId = null;
+let searchQuery = "";
+const grid = document.getElementById('grid');
+
+function renderGrid(){
+  grid.innerHTML = "";
+  const filtered = state.projects.filter(p =>
+    !searchQuery ||
+    p.title.toLowerCase().includes(searchQuery) ||
+    p.sub.toLowerCase().includes(searchQuery) ||
+    p.fields.some(f => f[0].toLowerCase().includes(searchQuery) || f[1].toLowerCase().includes(searchQuery)) ||
+    p.notes.toLowerCase().includes(searchQuery)
+  );
+
+  if(filtered.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = `چیزی برای «${searchQuery}» پیدا نشد`;
+    grid.appendChild(empty);
+  } else {
+    filtered.forEach(p=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--accent', p.accent);
+      card.style.setProperty('--rot', p.rot+'deg');
+      const filled = p.fields.filter(f=>f[1] && f[1].trim()).length;
+      card.innerHTML = `
+        <div class="pin"></div>
+        <div class="icon">${iconFor(p)}</div>
+        <h3>${esc(p.title)}</h3>
+        <p class="sub">${esc(p.sub)}</p>
+        <ul>${p.fields.slice(0,4).map(f=>`<li><b>${esc(f[0])}:</b> ${esc(f[1])||"—"}</li>`).join("")}${p.fields.length>4?`<li class="more">+ ${p.fields.length-4} مورد دیگر</li>`:""}</ul>
+        <div class="footer">
+          <span>${filled}/${p.fields.length} تکمیل · ${p.images.length} فایل</span>
+          <span>${fmtDate(p.updatedAt)}</span>
+        </div>
+      `;
+      card.addEventListener('click', ()=>openDetail(p.id));
+      grid.appendChild(card);
+    });
+  }
+
+  const addCard = document.createElement('div');
+  addCard.className = 'add-card';
+  addCard.innerHTML = `<div class="plus">+</div><div>پروژهٔ جدید</div>`;
+  addCard.addEventListener('click', addProject);
+  grid.appendChild(addCard);
+}
+
+document.getElementById('searchInput').addEventListener('input', e=>{
+  searchQuery = e.target.value.toLowerCase().trim();
+  renderGrid();
+});
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(confirm('همه پروژه‌ها و تغییرات شما پاک شده و تخته به حالت اولیه برمی‌گرده. مطمئنی؟')){
+    state = JSON.parse(JSON.stringify(defaultState));
+    saveState();
+    renderGrid();
+    toast('تخته به حالت اولیه بازگشت');
+  }
+});
+
+function addProject(){
+  const title = prompt("نام پروژه؟");
+  if(!title) return;
+  const colors = ["#4f7cff","#2fb59a","#ff3d63","#c7a15a","#8b5cf6","#ff9740"];
+  state.projects.push({
+    id: "p"+Date.now(),
+    title, sub:"پروژهٔ جدید",
+    accent: colors[state.projects.length % colors.length],
+    rot: (Math.random()*3-1.5).toFixed(1),
+    fields:[["فیلد ۱",""]], notes:"", images:[], updatedAt: Date.now()
+  });
+  saveState();
+  renderGrid();
+  toast('پروژه جدید ایجاد شد');
+}
+
+const detail = document.getElementById('detail');
+const detailSheet = document.getElementById('detailSheet');
+
+function openDetail(id){
+  activeId = id;
+  renderDetail();
+  detail.classList.add('open');
+}
+function closeDetail(){
+  detail.classList.remove('open');
+  activeId = null;
+  renderGrid();
+}
+detail.addEventListener('click', e=>{ if(e.target===detail) closeDetail(); });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('lightbox').classList.contains('open')) closeLightbox();
+    else if(detail.classList.contains('open')) closeDetail();
+  }
+});
+
+function getProject(){ return state.projects.find(p=>p.id===activeId); }
+
+function renderDetail(){
+  const p = getProject();
+  if(!p) return;
+  detailSheet.style.setProperty('--accent', p.accent);
+  detailSheet.innerHTML = `
+    <div class="detail-top">
+      <div class="title-wrap">
+        <span class="icon-big">${iconFor(p)}</span>
+        <h2 contenteditable="true" id="titleEdit" spellcheck="false">${esc(p.title)}</h2>
+      </div>
+      <button class="close" id="closeBtn" aria-label="بستن">×</button>
+    </div>
+    <div class="detail-body">
+      <div class="field-block">
+        <label>فیلدها</label>
+        <div id="fieldsWrap"></div>
+        <button class="btn" id="addFieldBtn" style="margin-top:6px;">+ افزودن فیلد</button>
+      </div>
+
+      <div class="field-block">
+        <label>یادداشت</label>
+        <textarea id="notesArea" placeholder="یادداشت آزاد...">${esc(p.notes)}</textarea>
+      </div>
+
+      <div class="field-block">
+        <label>فایل‌ها و تصاویر</label>
+        <div class="gallery" id="galleryWrap"></div>
+        <div class="upload-zone" id="uploadZone">برای آپلود عکس، متن یا هر فایلی، کلیک کن یا فایل رو اینجا رها کن</div>
+        <input type="file" id="fileInput" multiple>
+      </div>
+
+      <div class="detail-actions">
+        <button class="btn danger" id="deleteProjectBtn">حذف این پروژه</button>
+        <span class="save-hint">آخرین ویرایش: ${fmtDate(p.updatedAt)}</span>
+      </div>
+    </div>
+  `;
+
+  renderFields();
+  renderGallery();
+
+  document.getElementById('closeBtn').addEventListener('click', closeDetail);
+
+  const titleEdit = document.getElementById('titleEdit');
+  titleEdit.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); titleEdit.blur(); } });
+  titleEdit.addEventListener('blur', e=>{
+    p.title = e.target.textContent.trim() || p.title;
+    e.target.textContent = p.title;
+    touch(p);
+    toast('عنوان به‌روزرسانی شد');
+  });
+
+  document.getElementById('notesArea').addEventListener('input', e=>{ p.notes = e.target.value; touch(p); });
+
+  document.getElementById('addFieldBtn').addEventListener('click', ()=>{
+    p.fields.push(["فیلد جدید",""]);
+    touch(p);
+    renderFields();
+  });
+
+  document.getElementById('deleteProjectBtn').addEventListener('click', ()=>{
+    if(confirm(`پروژهٔ «${p.title}» حذف بشه؟ این کار قابل بازگشت نیست.`)){
+      state.projects = state.projects.filter(x=>x.id!==p.id);
+      saveState();
+      closeDetail();
+      toast('پروژه حذف شد');
+    }
+  });
+
+  const zone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('fileInput');
+  zone.addEventListener('click', ()=>fileInput.click());
+  fileInput.addEventListener('change', e=>handleFiles(e.target.files));
+  ['dragover','dragenter'].forEach(ev=>zone.addEventListener(ev, e=>{ e.preventDefault(); zone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev=>zone.addEventListener(ev, e=>{ e.preventDefault(); zone.classList.remove('drag'); }));
+  zone.addEventListener('drop', e=>{ handleFiles(e.dataTransfer.files); });
+}
+
+function renderFields(){
+  const p = getProject();
+  const wrap = document.getElementById('fieldsWrap');
+  wrap.innerHTML = "";
+  p.fields.forEach((f,i)=>{
+    const row = document.createElement('div');
+    row.className = 'field-row';
+    row.innerHTML = `
+      <input type="text" class="fname" value="${escAttr(f[0])}" placeholder="نام فیلد">
+      <input type="text" class="fval" value="${escAttr(f[1])}" placeholder="مقدار / لینک">
+      <button class="copy-btn" title="کپی متن" aria-label="کپی">📋</button>
+      <button class="rm" title="حذف فیلد" aria-label="حذف">×</button>
+    `;
+    row.querySelector('.fname').addEventListener('input', e=>{ f[0]=e.target.value; touch(p); });
+    row.querySelector('.fval').addEventListener('input', e=>{ f[1]=e.target.value; touch(p); });
+
+    row.querySelector('.copy-btn').addEventListener('click', ()=>{
+      if(!f[1]){ toast('چیزی برای کپی نیست'); return; }
+      navigator.clipboard?.writeText(f[1]).then(()=>toast('متن کپی شد')).catch(()=>toast('کپی ممکن نشد'));
+    });
+
+    row.querySelector('.rm').addEventListener('click', ()=>{
+      p.fields.splice(i,1);
+      touch(p);
+      renderFields();
+    });
+    wrap.appendChild(row);
+  });
+}
+
+function renderGallery(){
+  const p = getProject();
+  const wrap = document.getElementById('galleryWrap');
+  wrap.innerHTML = "";
+  p.images.forEach((f,i)=>{
+    const thumb = document.createElement('div');
+    if(f.type && f.type.startsWith('image/')){
+      thumb.className = 'thumb';
+      thumb.innerHTML = `<img src="${f.data}" alt="${escAttr(f.name)}"><button class="del">×</button>`;
+      thumb.querySelector('img').addEventListener('click', ()=>openLightbox(f.data, f.name));
+    } else {
+      thumb.className = 'thumb file';
+      thumb.innerHTML = `<div>📄</div><div>${esc(shorten(f.name))}</div><button class="del">×</button>`;
+    }
+    thumb.querySelector('.del').addEventListener('click', ()=>{
+      p.images.splice(i,1);
+      touch(p);
+      renderGallery();
+      renderGrid();
+    });
+    wrap.appendChild(thumb);
+  });
+}
+
+function handleFiles(fileList){
+  const p = getProject();
+  [...fileList].forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      p.images.push({ name:file.name, type:file.type, data:e.target.result });
+      touch(p);
+      renderGallery();
+      renderGrid();
+    };
+    reader.readAsDataURL(file);
+  });
+  toast('فایل اضافه شد');
+}
+
+/* ---------------- lightbox ---------------- */
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+function openLightbox(src, name){ lightboxImg.src = src; lightboxImg.alt = name||""; lightbox.classList.add('open'); }
+function closeLightbox(){ lightbox.classList.remove('open'); lightboxImg.src = ""; }
+lightbox.addEventListener('click', closeLightbox);
+
+/* ---------------- export / import ---------------- */
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `project-board-${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('فایل پشتیبان ذخیره شد');
+});
+
+document.getElementById('btnImport').addEventListener('click', ()=>document.getElementById('fileImport').click());
+document.getElementById('fileImport').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(data && Array.isArray(data.projects)){
+        state = data;
+        saveState();
+        renderGrid();
+        toast('پشتیبان با موفقیت بازیابی شد');
+      } else {
+        toast('فایل معتبر نیست');
+      }
+    }catch(err){
+      toast('خطا در خواندن فایل');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+/* ---------------- helpers ---------------- */
+function esc(s){ return (s||"").toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function escAttr(s){ return esc(s); }
+function shorten(s){ return s && s.length>14 ? s.slice(0,12)+"…" : s; }
+
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+renderGrid();
+</script>
+</body>
+</html>
